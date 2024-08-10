@@ -1,19 +1,46 @@
 import Banner from '@/components/Banner';
 import CardListContainer from './components/CardListContainer';
+import { metadataDefault } from './constants';
 
-const Ideas = () => {
+async function getIdeas(page: number, pageSize: number, sortBy: string) {
+  const sort = sortBy === 'newest' ? '-published_at' : 'published_at';
+  const res = await fetch(
+    `https://suitmedia-backend.suitdev.com/api/ideas?page[number]=${page}&page[size]=${pageSize}&append[]=small_image&append[]=medium_image&sort=${sort}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    }
+  );
+  const data = await res.json();
+  return data;
+}
+
+const Ideas = async ({
+  searchParams,
+}: {
+  searchParams?: {
+    page?: string;
+    pageSize?: string;
+    sortBy?: string;
+  };
+}) => {
+  const currentPage = searchParams?.page ? parseInt(searchParams.page) : 1;
+  const pageSize = searchParams?.pageSize
+    ? parseInt(searchParams.pageSize)
+    : 10;
+  const sortBy = searchParams?.sortBy || 'newest';
+  const res = await getIdeas(currentPage, pageSize, sortBy);
+
   return (
-    <div>
+    <div className='min-h-screen'>
       <Banner />
-      <CardListContainer />
-      <div className='h-screen w-full bg-white z-10'>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor quisquam
-        magni reiciendis inventore animi consequatur eveniet, voluptatibus
-        explicabo! Est, esse!
-      </div>
-      <div className='h-screen w-full bg-gray-200 z-10'>
-        Parallax effect makes scrolling through this content more engaging and dynamic.
-      </div>
+      <CardListContainer
+        ideasData={res?.data ?? []}
+        meta={res?.meta ?? metadataDefault}
+      />
     </div>
   );
 };
