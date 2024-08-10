@@ -4,11 +4,38 @@ import Image from 'next/image';
 import { navbarItems } from './constants';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 const Navbar = () => {
   const pathName = usePathname();
+  const [isVisible, setIsVisible] = useState(true);
+  const [isTransparent, setIsTransparent] = useState(false);
+  let lastScrollTop = 0;
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      if (currentScrollTop > lastScrollTop) {
+        setIsVisible(false);
+        setIsTransparent(false);
+      } else {
+        setIsVisible(true);
+        setIsTransparent(currentScrollTop > 50); 
+      }
+      lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className='fixed inset-x-0 top-0 py-2 px-10 flex justify-between items-center bg-primary z-40'>
+    <div
+      className={`fixed inset-x-0 top-0 py-2 px-10 flex justify-between items-center z-40 transition-all duration-500 ${
+        isVisible ? (isTransparent ? 'bg-primary bg-opacity-80' : 'bg-primary') : '-translate-y-full'
+      }`}
+    >
       <Image
         src={'/navbar-logo.png'}
         alt={'Navbar Logo'}
